@@ -19,27 +19,64 @@ import reducer from './reducer';
 
 // 获取仓库状态  派发动作 调用下一个中间价 action
 
-let logger1 = function({dispatch,getState}){
+// let logger1 = function({dispatch,getState}){
+//     return function(next){
+//         return function(action){
+//             console.log('老状态1',getState());
+//             next(action);// 派发动作
+//             console.log('新状态1',store.getState());
+//         }
+//     }
+// }
+
+// let logger2 = function({dispatch,getState}){
+//     return function(next){
+//         return function(action){
+//             console.log('老状态2',getState());
+//             next(action);// 派发动作
+//             console.log('新状态2',store.getState());
+//         }
+//     }
+// }
+
+
+let logger = function({dispatch,getState}){
     return function(next){
         return function(action){
             console.log('老状态1',getState());
             next(action);// 派发动作
             console.log('新状态1',store.getState());
+            // dispatch的用法
+            let newState = getState();
+            if(newState.number === 10){
+                dispatch({type:'INCREMENT',payload:-10});
+            }
         }
     }
 }
 
-let logger2 = function({dispatch,getState}){
-    return function(next){
-        return function(action){
-            console.log('老状态2',getState());
-            next(action);// 派发动作
-            console.log('新状态2',store.getState());
-        }
+let thunk = ({dispatch,getState}) => next => action =>{
+    if(typeof action === 'function'){
+        action(dispatch,getState);
+    }else{
+        next(action);
     }
 }
 
-let store = applyMiddleware(logger1,logger2)(createStore)(reducer);
+let promise = ({dispatch,getState}) => next => action =>{
+    if(action.then){
+        action.then(dispatch);
+    }else if(action.payload && action.payload.then){
+        action.payload.then(payload=>dispatch({...action,payload}),payload=>dispatch({...action,payload}))
+    }else{
+        next(action);
+    }
+}
+
+
+// let store = applyMiddleware(logger1,logger2)(createStore)(reducer);
+// let store = applyMiddleware(promise,thunk,logger)(createStore)(reducer);
+let store = createStore(reducer,{number:0},applyMiddleware(promise,thunk,logger));
 
 window.store = store;
 export default store;

@@ -15,6 +15,9 @@ class Counter extends Component {
       <div>
        <p>{this.props.number}</p>
        <button onClick={this.props.increment}>+</button>
+       <button onClick={this.props.thunkIncrement}>过一秒后加一</button>
+       <button onClick={this.props.promiseIncrement}>Promise加一</button>
+       <button onClick={this.props.payloadIncrement}>Promise加一</button>
       </div>
     )
   }
